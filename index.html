@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Planner X</title>
+  <style>
+    body { margin:0; font-family:system-ui,sans-serif; background:#0f172a; color:#f1f5f9; overflow:hidden; }
+    header { background:#1e2937; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10; }
+    .coins { background:#ca8a04; color:#0f172a; padding:6px 18px; border-radius:30px; font-weight:700; }
+    
+    .page { display:none; padding:20px; padding-bottom:100px; height:calc(100vh - 130px); overflow-y:auto; }
+    .page.active { display:block; }
+    
+    .card { background:rgba(255,255,255,0.08); border-radius:20px; padding:22px; margin-bottom:20px; }
+    
+    input, select, button { width:100%; padding:15px; margin:8px 0; border-radius:14px; border:none; font-size:16px; }
+    button { background:#22c55e; color:white; font-weight:600; cursor:pointer; }
+    
+    .nav { position:fixed; bottom:0; left:0; right:0; background:#1e2937; display:flex; padding:8px 0; border-top:1px solid rgba(255,255,255,0.1); }
+    .nav button { flex:1; background:none; border:none; color:#94a3b8; font-size:11px; padding:10px 0; }
+    .nav button.active { color:white; }
+    
+    .list-item { background:rgba(255,255,255,0.07); padding:16px; border-radius:16px; margin-bottom:12px; display:flex; align-items:center; gap:12px; }
+  </style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Planner X</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e2937">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
+  <style>
+    body { margin:0; font-family:system-ui,sans-serif; ... }
+</head>
+<body>
+
+  <header>
+    <div style="font-size:21px;font-weight:700;">Life Planner X</div>
+    <div class="coins">Vibranium <span id="coinsDisplay">0</span></div>
+  </header>
+
+  <!-- Dashboard -->
+  <div id="home" class="page active">
+    <div class="card">
+      <h2 id="greeting">Good morning! 👋</h2>
+      <p id="bonusMsg" style="color:#4ade80;font-weight:600;margin:10px 0;"></p>
+      <div style="text-align:center;margin:20px 0;">
+        <div style="font-size:48px;" id="streak">🔥 0</div>
+        <div style="font-size:14px;opacity:0.7;">Day Streak</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:40px;">🍽️</div>
+        <div style="margin:10px 0 4px;opacity:0.8;">Meals Logged</div>
+        <div id="mealCount" style="font-size:32px;font-weight:700;color:#60a5fa;">0</div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:40px;">✅</div>
+        <div style="margin:10px 0 4px;opacity:0.8;">Tasks Done</div>
+        <div id="taskCount" style="font-size:32px;font-weight:700;color:#4ade80;">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meals -->
+  <div id="meals" class="page">
+    <div class="card">
+      <h3>🍽️ Log Meal</h3>
+      <select id="mealCategory">
+        <option value="Breakfast">Breakfast</option>
+        <option value="Lunch">Lunch</option>
+        <option value="Dinner">Dinner</option>
+        <option value="Snack">Snack</option>
+      </select>
+      <input id="mealInput" placeholder="What did you eat?">
+      <button onclick="addMeal()">Add Meal</button>
+    </div>
+    <div id="mealList"></div>
+  </div>
+
+  <!-- Tasks -->
+  <div id="tasks" class="page">
+    <div class="card">
+      <h3>📋 Tasks</h3>
+      <select id="taskPriority">
+        <option value="High">High Priority</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <input id="taskInput" placeholder="New task...">
+      <button onclick="addTask()">Add Task</button>
+    </div>
+    <div id="taskList"></div>
+  </div>
+
+  <!-- Habits -->
+  <div id="habits" class="page">
+    <div class="card">
+      <h3>🔄 Daily Habits</h3>
+      <input id="habitInput" placeholder="New habit (e.g. Drink 2L water)">
+      <button onclick="addHabit()">Add Habit</button>
+    </div>
+    <div id="habitList"></div>
+  </div>
+
+  <!-- Rewards -->
+  <div id="rewards" class="page">
+    <div class="card">
+      <h3>💰 Rewards</h3>
+      <div style="text-align:center;padding:30px;background:rgba(234,179,8,0.15);border-radius:18px;">
+        <div style="font-size:14px;opacity:0.8;">Your Balance</div>
+        <div id="coinsBig" style="font-size:52px;font-weight:700;color:#eab308;">0</div>
+        <div>Vibranium</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="nav">
+    <button onclick="showPage('home')" class="active">🏠 Home</button>
+    <button onclick="showPage('meals')">🍽️ Meals</button>
+    <button onclick="showPage('tasks')">📋 Tasks</button>
+    <button onclick="showPage('habits')">🔄 Habits</button>
+    <button onclick="showPage('rewards')">💰 Rewards</button>
+  </nav>
+
+<script>
+// State
+let coins = parseInt(localStorage.getItem('coins') || '0');
+let meals = JSON.parse(localStorage.getItem('meals') || '[]');
+let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+let streak = parseInt(localStorage.getItem('streak') || '0');
+
+// Update coins
+function updateCoins() {
+  document.getElementById('coinsDisplay').textContent = coins;
+  document.getElementById('coinsBig').textContent = coins;
+}
+
+// Show Page
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// Daily Bonus + Streak
+function checkDailyBonus() {
+  const today = new Date().toDateString();
+  const lastDay = localStorage.getItem('lastDay');
+  
+  if (lastDay !== today) {
+    coins += 100;
+    streak = (lastDay && new Date(lastDay).getTime() === new Date().getTime() - 86400000) ? streak + 1 : 1;
+    
+    localStorage.setItem('coins', coins);
+    localStorage.setItem('streak', streak);
+    localStorage.setItem('lastDay', today);
+    
+    document.getElementById('bonusMsg').innerHTML = `✨ +100 Daily Bonus! ${streak} day streak 🔥`;
+  }
+  document.getElementById('streak').innerHTML = `🔥 ${streak}`;
+}
+
+// Meals
+function addMeal() {
+  const val = document.getElementById('mealInput').value.trim();
+  if (!val) return;
+  meals.unshift({cat: document.getElementById('mealCategory').value, text: val});
+  localStorage.setItem('meals', JSON.stringify(meals));
+  document.getElementById('mealInput').value = '';
+  coins += 10;
+  localStorage.setItem('coins', coins);
+  updateCoins();
+  renderMeals();
+}
+
+function renderMeals() {
+  let html = '';
+  meals.forEach((m,i) => html += `<div class="list-item"><div><b>${m.cat}</b><br>${m.text}</div><button onclick="deleteMeal(${i})" style="background:#ef4444;color:white;border:none;padding:8px 14px;border-radius:8px;">✕</button></div>`);
+  document.getElementById('mealList').innerHTML = html;
+  document.getElementById('mealCount').textContent = meals.length;
+}
+window.deleteMeal = i => { meals.splice(i,1); localStorage.setItem('meals', JSON.stringify(meals)); renderMeals(); };
+
+// Tasks
+function addTask() {
+  const val = document.getElementById('taskInput').value.trim();
+  if (!val) return;
+  tasks.unshift({text: val, priority: document.getElementById('taskPriority').value, done: false});
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  document.getElementById('taskInput').value = '';
+  coins += 20;
+  localStorage.setItem('coins', coins);
+  updateCoins();
+  renderTasks();
+}
+
+function renderTasks() {
+  let html = '', done = 0;
+  tasks.forEach((t,i) => {
+    if (t.done) done++;
+    html += `<div class="list-item" style="${t.done ? 'opacity:0.6;text-decoration:line-through' : ''}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${i})">
+      <div style="flex:1;margin-left:10px;">${t.text} <small>(${t.priority})</small></div>
+      <button onclick="deleteTask(${i})" style="background:#ef4444;color:white;border:none;padding:8px 14px;border-radius:8px;">✕</button>
+    </div>`;
+  });
+  document.getElementById('taskList').innerHTML = html;
+  document.getElementById('taskCount').textContent = done;
+}
+window.toggleTask = i => { tasks[i].done = !tasks[i].done; localStorage.setItem('tasks', JSON.stringify(tasks)); renderTasks(); };
+window.deleteTask = i => { tasks.splice(i,1); localStorage.setItem('tasks', JSON.stringify(tasks)); renderTasks(); };
+
+// Habits
+function addHabit() {
+  const val = document.getElementById('habitInput').value.trim();
+  if (!val) return;
+  habits.unshift({text: val, done: false});
+  localStorage.setItem('habits', JSON.stringify(habits));
+  document.getElementById('habitInput').value = '';
+  coins += 15;
+  localStorage.setItem('coins', coins);
+  updateCoins();
+  renderHabits();
+}
+
+function renderHabits() {
+  let html = '';
+  habits.forEach((h,i) => {
+    html += `<div class="list-item">
+      <input type="checkbox" ${h.done?'checked':''} onchange="toggleHabit(${i})">
+      <div style="flex:1;margin-left:12px;">${h.text}</div>
+      <button onclick="deleteHabit(${i})" style="background:#ef4444;color:white;border:none;padding:8px 14px;border-radius:8px;">✕</button>
+    </div>`;
+  });
+  document.getElementById('habitList').innerHTML = html;
+}
+window.toggleHabit = i => { habits[i].done = !habits[i].done; localStorage.setItem('habits', JSON.stringify(habits)); renderHabits(); };
+window.deleteHabit = i => { habits.splice(i,1); localStorage.setItem('habits', JSON.stringify(habits)); renderHabits(); };
+
+// Init
+window.onload = () => {
+  updateCoins();
+  checkDailyBonus();
+  renderMeals();
+  renderTasks();
+  renderHabits();
+};
+</script>
+</body>
+</html>
